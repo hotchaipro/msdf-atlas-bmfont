@@ -1,0 +1,3 @@
+[submodule "HotChai.Json"]
+	path = HotChai.Json
+	url = https://github.com/hotchaipro/HotChai.Json

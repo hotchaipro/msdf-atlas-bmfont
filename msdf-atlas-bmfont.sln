@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msdf-atlas-bmfont", "src\msdf-atlas-bmfont.csproj", "{1C65257F-BC97-45C3-91C0-2BB061159D62}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "HotChai.Json", "HotChai.Json\HotChai.Json\HotChai.Json.shproj", "{502936C8-D442-4845-BD1D-17C9B3C33A1B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C65257F-BC97-45C3-91C0-2BB061159D62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C65257F-BC97-45C3-91C0-2BB061159D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C65257F-BC97-45C3-91C0-2BB061159D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C65257F-BC97-45C3-91C0-2BB061159D62}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7252D355-E76B-4FBB-83B0-D140EF244EC0}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		HotChai.Json\HotChai.Json\HotChai.Json.projitems*{1c65257f-bc97-45c3-91c0-2bb061159d62}*SharedItemsImports = 5
+		HotChai.Json\HotChai.Json\HotChai.Json.projitems*{502936c8-d442-4845-bd1d-17c9b3c33a1b}*SharedItemsImports = 13
+	EndGlobalSection
+EndGlobal
