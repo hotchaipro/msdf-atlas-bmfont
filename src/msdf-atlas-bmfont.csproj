@@ -8,6 +8,7 @@
 		<Nullable>disable</Nullable>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
+		<PublishTrimmed>True</PublishTrimmed>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	</PropertyGroup>
 
