@@ -2,14 +2,16 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<RootNamespace>HotChai.Fonts</RootNamespace>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
-		<PublishTrimmed>True</PublishTrimmed>
+		<PublishTrimmed>true</PublishTrimmed>
+		<!--<PublishAot>true</PublishAot>-->
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
 
 	<Import Project="..\HotChai.Json\HotChai.Json\HotChai.Json.projitems" Label="Shared" />
