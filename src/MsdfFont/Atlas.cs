@@ -25,6 +25,9 @@ namespace HotChai.Fonts.Msdf
         public readonly string AtlasType;
         public readonly int DistanceRange;
         public readonly int DistanceRangeMiddle;
+        /// <summary>
+        /// The font size in pixels per em.
+        /// </summary>
         public readonly double Size;
         public readonly int Width;
         public readonly int Height;

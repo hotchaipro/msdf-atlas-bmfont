@@ -20,8 +20,8 @@ namespace HotChai.Fonts.Msdf
             JsonReader reader)
         {
             Atlas atlas = default;
-            Metrics metrics = default;
-            ReadOnlyMemory<Glyph> glyphs = null;
+            var metrics = new List<Metrics>();
+            var glyphs = new List<Glyph>();
 
             if (reader.ReadStartObject())
             {
@@ -34,12 +34,41 @@ namespace HotChai.Fonts.Msdf
                             break;
 
                         case "metrics":
-                            metrics = this.ReadMetrics(reader);
+                            metrics.Add(this.ReadMetrics(reader));
                             break;
 
                         case "glyphs":
-                            var glyphsList = new List<Glyph>(this.ReadGlyphs(reader));
-                            glyphs = new ReadOnlyMemory<Glyph>(glyphsList.ToArray());
+                            glyphs.AddRange(this.ReadGlyphs(reader));
+                            break;
+
+                        case "variants":
+                            if (reader.ReadStartArray())
+                            {
+                                while (reader.MoveToNextArrayValue())
+                                {
+                                    if (reader.ReadStartObject())
+                                    {
+                                        while (reader.MoveToNextMember())
+                                        {
+                                            switch (reader.MemberKey)
+                                            {
+                                                case "metrics":
+                                                    metrics.Add(this.ReadMetrics(reader));
+                                                    break;
+
+                                                case "glyphs":
+                                                    glyphs.AddRange(this.ReadGlyphs(reader));
+                                                    break;
+                                            }
+                                        }
+
+                                        reader.ReadEndObject();
+                                    }
+                                }
+
+                                reader.ReadEndArray();
+                            }
+
                             break;
                     }
                 }
@@ -49,8 +78,8 @@ namespace HotChai.Fonts.Msdf
 
             return new MsdfFont(
                 atlas: atlas,
-                metrics: metrics,
-                glyphs: glyphs);
+                metrics: metrics[0],
+                glyphs: new ReadOnlyMemory<Glyph>(glyphs.ToArray()));
         }
 
         private Atlas ReadAtlas(

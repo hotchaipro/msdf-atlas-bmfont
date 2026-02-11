@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HotChai.Json/HotChai.Json/HotChai.Json.shproj" />
+  <Project Path="src/msdf-atlas-bmfont.csproj" />
+</Solution>
