@@ -39,14 +39,14 @@ The platforms published by default are listed in `PublishRuntimeIdentifiers` in 
 
 ### 1. Generate the atlas with msdf-atlas-gen
 
-Generate a PNG atlas and a JSON layout. Either Y origin (`-yorigin top` or `bottom`) can be converted.
+Generate a PNG atlas and a JSON layout.
 
 ```powershell
 msdf-atlas-gen.exe -font MyFont.ttf -type msdf -size 32 -pxrange 4 -format png
     -imageout MyFont.png -json MyFont.json
 ```
 
-Any atlas type (`sdf`, `psdf`, `msdf` or `mtsdf`) can be converted, with either a symmetric (`-pxrange`) or an asymmetric (`-apxrange`) distance range. An asymmetric range spends the atlas's precision and padding on the side of the outline you need: for example, `-apxrange -6 2` reaches further outside the glyphs for outlines and glows, and `-apxrange -1 3` packs plain text into a smaller atlas. See the msdf-atlas-gen documentation for the full list of options.
+Any atlas type (`sdf`, `psdf`, `msdf` or `mtsdf`) can be converted, with either Y origin (`-yorigin top` or `bottom`) and either a symmetric (`-pxrange`) or an asymmetric (`-apxrange`) distance range. An asymmetric range spends the atlas's precision and padding on the side of the outline you need: for example, `-apxrange -6 2` reaches further outside the glyphs for outlines and glows, and `-apxrange -1 3` packs plain text into a smaller atlas. See the msdf-atlas-gen documentation for the full list of options.
 
 ### 2. Convert the JSON to BMFont
 
@@ -57,8 +57,8 @@ msdf-atlas-bmfont convert <input_path> -image:<atlas_image_path> [-format:xml|bi
 | Argument | Description |
 |---|---|
 | `<input_path>` | The JSON layout written by msdf-atlas-gen. |
-| `-image:<atlas_image_path>` | The atlas image file name to reference from the font. It is written into the font as-is, so it is normally a path relative to the `.fnt` file. Required. |
-| `-format:xml\|binary` | The output format. Defaults to `xml`. |
+| `<atlas_image_path>` | The atlas image file name to reference from the font. It is written into the font as-is, so it is normally a path relative to the `.fnt` file. Required. |
+| `-format:xml|binary` | The output format. Defaults to `xml`. |
 
 The output is written next to the input, with the same name and a `.fnt` extension.
 
