@@ -39,12 +39,20 @@ namespace HotChai.CommandLine
 
         private static int ShowHelp()
         {
+            ShowVersion();
+
             foreach (var command in Commands.Values)
             {
                 ShowHelp(command);
             }
 
             return ConsoleResult.SyntaxError;
+        }
+
+        private static void ShowVersion()
+        {
+            var assemblyName = typeof(ConsoleApp).Assembly.GetName();
+            Console.WriteLine($"{assemblyName.Name} {assemblyName.Version?.ToString(3)}");
         }
 
         private static void ShowHelp(
