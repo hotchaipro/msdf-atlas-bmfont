@@ -65,7 +65,7 @@ namespace HotChai.Fonts
                 bitmapFont.DistanceField = new DistanceField()
                 {
                     Type = distanceFieldType,
-                    DistanceRange = msdfFont.Atlas.DistanceRange,
+                    DistanceRange = (float)msdfFont.Atlas.DistanceRange,
                 };
             }
 

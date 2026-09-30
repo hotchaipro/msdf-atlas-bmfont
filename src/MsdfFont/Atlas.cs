@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChai.Fonts.Msdf
 {
@@ -6,8 +6,8 @@ namespace HotChai.Fonts.Msdf
     {
         public Atlas(
             string atlasType,
-            int distanceRange,
-            int distanceRangeMiddle,
+            double distanceRange,
+            double distanceRangeMiddle,
             double size,
             int width,
             int height,
@@ -23,8 +23,8 @@ namespace HotChai.Fonts.Msdf
         }
 
         public readonly string AtlasType;
-        public readonly int DistanceRange;
-        public readonly int DistanceRangeMiddle;
+        public readonly double DistanceRange;
+        public readonly double DistanceRangeMiddle;
         /// <summary>
         /// The font size in pixels per em.
         /// </summary>

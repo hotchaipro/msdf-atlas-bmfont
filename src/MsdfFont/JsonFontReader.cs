@@ -93,8 +93,8 @@ namespace HotChai.Fonts.Msdf
             ref Utf8JsonReader reader)
         {
             string atlasType = null;
-            int distanceRange = 0;
-            int distanceRangeMiddle = 0;
+            double distanceRange = 0;
+            double distanceRangeMiddle = 0;
             double size = 0;
             int width = 0;
             int height = 0;
@@ -111,11 +111,11 @@ namespace HotChai.Fonts.Msdf
                             break;
 
                         case "distanceRange":
-                            distanceRange = GetInt32(ref reader);
+                            distanceRange = reader.GetDouble();
                             break;
 
                         case "distanceRangeMiddle":
-                            distanceRangeMiddle = GetInt32(ref reader);
+                            distanceRangeMiddle = reader.GetDouble();
                             break;
 
                         case "size":
@@ -123,11 +123,11 @@ namespace HotChai.Fonts.Msdf
                             break;
 
                         case "width":
-                            width = GetInt32(ref reader);
+                            width = reader.GetInt32();
                             break;
 
                         case "height":
-                            height = GetInt32(ref reader);
+                            height = reader.GetInt32();
                             break;
 
                         case "yOrigin":
@@ -239,7 +239,7 @@ namespace HotChai.Fonts.Msdf
                     switch (memberKey)
                     {
                         case "unicode":
-                            unicode = GetInt32(ref reader);
+                            unicode = reader.GetInt32();
                             break;
 
                         case "advance":
@@ -382,17 +382,6 @@ namespace HotChai.Fonts.Msdf
             {
                 throw new JsonException("Unexpected end of JSON.");
             }
-        }
-
-        /// <summary>
-        /// Reads an integer, rounding a fractional number rather than rejecting it.
-        /// </summary>
-        private static int GetInt32(
-            ref Utf8JsonReader reader)
-        {
-            return reader.TryGetInt32(out var value)
-                ? value
-                : (int)Math.Round(reader.GetDouble());
         }
     }
 }
