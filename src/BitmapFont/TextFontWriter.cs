@@ -1,10 +1,11 @@
-﻿//**************************************************************************************************
+//**************************************************************************************************
 // BitmapFont.cs                                                                                   *
 // Copyright (c) 2018-2020 Aurora Berta-Oldham                                                     *
 // This code is made available under the MIT License.                                              *
 //**************************************************************************************************
 
 using System;
+using System.Globalization;
 
 namespace HotChai.Fonts.Bitmap
 {
@@ -76,6 +77,15 @@ namespace HotChai.Fonts.Bitmap
                     WriteKerningPair(keyValuePair.Key, textWriter, keyValuePair.Value);
                     textWriter.WriteLine();
                 }
+            }
+
+            // Distance field
+
+            if (font.DistanceField is not null)
+            {
+                textWriter.Write("msdf");
+                WriteDistanceField(font.DistanceField, textWriter);
+                textWriter.WriteLine();
             }
         }
 
@@ -151,6 +161,15 @@ namespace HotChai.Fonts.Bitmap
             WriteInt("amount", amount, textWriter);
         }
 
+        private void WriteDistanceField(
+            DistanceField distanceField,
+            TextWriter textWriter)
+        {
+            WriteInt("version", DistanceField.Version, textWriter);
+            WriteEnum("type", distanceField.Type, textWriter);
+            WriteFloat("distanceRange", distanceField.DistanceRange, textWriter);
+        }
+
         private static void WriteValue(
             string propertyName,
             string value,
@@ -173,6 +192,14 @@ namespace HotChai.Fonts.Bitmap
             TextWriter textWriter)
         {
             WriteValue(propertyName, value.ToString(), textWriter);
+        }
+
+        private static void WriteFloat(
+            string propertyName,
+            float value,
+            TextWriter textWriter)
+        {
+            WriteValue(propertyName, value.ToString(CultureInfo.InvariantCulture), textWriter);
         }
 
         private static void WriteBool(

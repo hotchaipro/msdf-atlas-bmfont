@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChai.Fonts.Bitmap
 {
@@ -25,6 +25,14 @@ namespace HotChai.Fonts.Bitmap
         }
 
         public IDictionary<KerningPair, int> KerningPairs
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The distance field parameters, or <c>null</c> if the atlas is not a distance field.
+        /// </summary>
+        public DistanceField DistanceField
         {
             get; set;
         }

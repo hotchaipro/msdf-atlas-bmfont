@@ -1,4 +1,4 @@
-﻿//**************************************************************************************************
+//**************************************************************************************************
 // BitmapFont.cs                                                                                   *
 // Copyright (c) 2018-2020 Aurora Berta-Oldham                                                     *
 // This code is made available under the MIT License.                                              *
@@ -111,6 +111,15 @@ namespace HotChai.Fonts.Bitmap
                 fontElement.Add(kerningsElement);
             }
 
+            // Distance field
+
+            if (font.DistanceField is not null)
+            {
+                var distanceFieldElement = new XElement("msdf");
+                WriteDistanceField(font.DistanceField, distanceFieldElement);
+                fontElement.Add(distanceFieldElement);
+            }
+
             document.WriteTo(xmlWriter);
         }
 
@@ -184,6 +193,15 @@ namespace HotChai.Fonts.Bitmap
             element.SetAttributeValue("first", kerningPair.First);
             element.SetAttributeValue("second", kerningPair.Second);
             element.SetAttributeValue("amount", amount);
+        }
+
+        private void WriteDistanceField(
+            DistanceField distanceField,
+            XElement element)
+        {
+            element.SetAttributeValue("version", (int)DistanceField.Version);
+            element.SetAttributeValue("type", (int)distanceField.Type);
+            element.SetAttributeValue("distanceRange", distanceField.DistanceRange);
         }
     }
 }

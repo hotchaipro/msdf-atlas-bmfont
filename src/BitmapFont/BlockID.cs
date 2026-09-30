@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChai.Fonts.Bitmap
 {
@@ -9,5 +9,11 @@ namespace HotChai.Fonts.Bitmap
         Pages = 3,
         Characters = 4,
         KerningPairs = 5,
+
+        /// <summary>
+        /// An extension block that describes the distance field of an SDF, MSDF, or MTSDF
+        /// font. See <see cref="Bitmap.DistanceField"/> for the layout.
+        /// </summary>
+        DistanceField = 200,
     }
 }

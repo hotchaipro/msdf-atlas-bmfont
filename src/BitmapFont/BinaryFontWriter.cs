@@ -1,4 +1,4 @@
-﻿//**************************************************************************************************
+//**************************************************************************************************
 // BitmapFont.cs                                                                                   *
 // Copyright (c) 2018-2020 Aurora Berta-Oldham                                                     *
 // This code is made available under the MIT License.                                              *
@@ -25,7 +25,7 @@ namespace HotChai.Fonts.Bitmap
             BitmapFont font,
             string path)
         {
-            using (var stream = File.OpenWrite(path))
+            using (var stream = File.Create(path))
             {
                 using (var writer = new BinaryWriter(stream))
                 {
@@ -92,6 +92,12 @@ namespace HotChai.Fonts.Bitmap
                 {
                     WriteKerningPair(keyValuePair.Key, binaryWriter, keyValuePair.Value);
                 }
+            }
+
+            if (font.DistanceField is not null)
+            {
+                binaryWriter.Write((byte)BlockId.DistanceField);
+                WriteDistanceField(font.DistanceField, binaryWriter);
             }
         }
 
@@ -187,6 +193,17 @@ namespace HotChai.Fonts.Bitmap
             binaryWriter.Write((uint)kerningPair.First);
             binaryWriter.Write((uint)kerningPair.Second);
             binaryWriter.Write((short)amount);
+        }
+
+        private static void WriteDistanceField(
+            DistanceField distanceField,
+            BinaryWriter binaryWriter)
+        {
+            binaryWriter.Write(DistanceField.SizeInBytes);
+            binaryWriter.Write(DistanceField.Signature);
+            binaryWriter.Write(DistanceField.Version);
+            binaryWriter.Write((byte)distanceField.Type);
+            binaryWriter.Write(distanceField.DistanceRange);
         }
 
         private static byte SetBit(

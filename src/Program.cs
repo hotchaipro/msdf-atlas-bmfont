@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using HotChai.CommandLine;
@@ -12,7 +12,7 @@ namespace HotChai.Fonts
         private static Task<int> Main(
             string[] args)
         {
-            ConsoleApp.RegisterCommand("convert", ConvertCommand, "{input_path} -image:{atlas_image_path}");
+            ConsoleApp.RegisterCommand("convert", ConvertCommand, "{input_path} -image:{atlas_image_path} [-format:xml|binary]");
 
             return ConsoleApp.Start(args);
         }
@@ -30,6 +30,12 @@ namespace HotChai.Fonts
             var destinationPath = Path.ChangeExtension(sourcePath, ".fnt");
 
             var image = flags["image"];
+
+            bool binaryFormat = false;
+            if (flags.TryGetValue("format", out var format))
+            {
+                binaryFormat = format?.Equals("binary", StringComparison.OrdinalIgnoreCase) ?? false;
+            }
 
             var msdfFontReader = new JsonFontReader();
             var msdfFont = msdfFontReader.Read(sourcePath);
@@ -52,6 +58,16 @@ namespace HotChai.Fonts
                 ScaleWidth = msdfFont.Atlas.Width,
                 ScaleHeight = msdfFont.Atlas.Height,
             };
+
+            var distanceFieldType = DistanceField.ParseType(msdfFont.Atlas.AtlasType);
+            if ((distanceFieldType != DistanceFieldType.Unknown) && (msdfFont.Atlas.DistanceRange > 0))
+            {
+                bitmapFont.DistanceField = new DistanceField()
+                {
+                    Type = distanceFieldType,
+                    DistanceRange = msdfFont.Atlas.DistanceRange,
+                };
+            }
 
             int page = 0;
 
@@ -79,8 +95,16 @@ namespace HotChai.Fonts
                 };
             }
 
-            var writer = new XmlFontWriter();
-            writer.WriteFont(bitmapFont, destinationPath);
+            if (binaryFormat)
+            {
+                var writer = new BinaryFontWriter();
+                writer.WriteFont(bitmapFont, destinationPath);
+            }
+            else
+            {
+                var writer = new XmlFontWriter();
+                writer.WriteFont(bitmapFont, destinationPath);
+            }
 
             Console.WriteLine($"Wrote {destinationPath}");
 
