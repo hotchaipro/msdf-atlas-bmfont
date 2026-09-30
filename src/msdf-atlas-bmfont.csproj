@@ -10,8 +10,44 @@
 		<SelfContained>true</SelfContained>
 		<PublishTrimmed>true</PublishTrimmed>
 		<!--<PublishAot>true</PublishAot>-->
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
+
+	<!--
+		Publishing without a runtime identifier publishes a build for every platform in
+		PublishRuntimeIdentifiers; publishing with -r publishes that platform only. Each build is
+		written to artifacts/publish/<runtime identifier>/ in the repository root.
+	-->
+	<PropertyGroup>
+		<PublishRuntimeIdentifiers>win-x64;osx-arm64;osx-x64;linux-x64</PublishRuntimeIdentifiers>
+		<!-- Restore every platform up front, so the per-platform publishes can run in parallel. -->
+		<RuntimeIdentifiers>$(PublishRuntimeIdentifiers)</RuntimeIdentifiers>
+		<_PublishAllPlatforms Condition="'$(RuntimeIdentifier)' == ''">true</_PublishAllPlatforms>
+		<_PublishRootDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'artifacts', 'publish'))</_PublishRootDir>
+	</PropertyGroup>
+
+	<!--
+		Publishing without -r first publishes for the current machine (the SDK infers its runtime
+		identifier), then the remaining platforms.
+	-->
+	<Target Name="_PublishAllPlatforms"
+			AfterTargets="Publish"
+			Condition="'$(_PublishAllPlatforms)' == 'true'">
+		<ItemGroup>
+			<_PublishPlatform Include="$(PublishRuntimeIdentifiers)" Exclude="$(RuntimeIdentifier)" />
+			<_PublishPlatformProject Include="$(MSBuildProjectFullPath)"
+									 AdditionalProperties="RuntimeIdentifier=%(_PublishPlatform.Identity);PublishDir=$(_PublishRootDir)%(_PublishPlatform.Identity)\" />
+		</ItemGroup>
+		<MSBuild Projects="@(_PublishPlatformProject)"
+				 Targets="Publish"
+				 BuildInParallel="true" />
+	</Target>
+
+	<Target Name="_SetPlatformPublishDir"
+			BeforeTargets="PrepareForPublish">
+		<PropertyGroup>
+			<PublishDir>$(_PublishRootDir)$(RuntimeIdentifier)\</PublishDir>
+		</PropertyGroup>
+	</Target>
 
 </Project>
