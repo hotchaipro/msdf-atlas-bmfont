@@ -42,21 +42,34 @@ namespace HotChai.Fonts
 
             var bitmapFont = new BitmapFont();
 
+            var atlas = msdfFont.Atlas;
+            var pixelsPerUnit = atlas.Size;
+
+            // BMFont measures y downward from the top; normalize a bottom-origin atlas to match.
+            double ySign = atlas.IsTopYOrigin ? 1 : -1;
+            var ascender = ySign * msdfFont.Metrics.Ascender;
+
+            // -fontscale scales the geometry, so an em spans EmSize units.
+            var emSize = (msdfFont.Metrics.EmSize > 0) ? msdfFont.Metrics.EmSize : 1;
+
             bitmapFont.Info = new BitmapFontInfo()
             {
                 FontName = "",
-                Size = (int)Math.Round(msdfFont.Atlas.Size),
+                Size = RoundToPixel(pixelsPerUnit * emSize),
                 Unicode = true,
                 Smooth = true,
             };
 
+            // Glyph y offsets are measured from this rounded baseline so that every glyph sits on it.
+            var baseline = RoundToPixel(-ascender * pixelsPerUnit);
+
             bitmapFont.Common = new BitmapFontCommon()
             {
                 // See https://www.angelcode.com/products/bmfont/doc/render_text.html
-                LineHeight = (int)Math.Round(msdfFont.Metrics.LineHeight * msdfFont.Atlas.Size),
-                Base = (int)Math.Round((0 - msdfFont.Metrics.Ascender) * msdfFont.Atlas.Size),
-                ScaleWidth = msdfFont.Atlas.Width,
-                ScaleHeight = msdfFont.Atlas.Height,
+                LineHeight = RoundToPixel(msdfFont.Metrics.LineHeight * pixelsPerUnit),
+                Base = baseline,
+                ScaleWidth = atlas.Width,
+                ScaleHeight = atlas.Height,
             };
 
             var distanceFieldType = DistanceField.ParseType(msdfFont.Atlas.AtlasType);
@@ -78,21 +91,39 @@ namespace HotChai.Fonts
 
             foreach (var glyph in msdfFont.Glyphs.Span)
             {
-                bitmapFont.Characters[glyph.Unicode] = new Character()
+                var character = new Character()
                 {
-                    // See https://www.angelcode.com/products/bmfont/doc/render_text.html
-                    X = (int)Math.Round(glyph.AtlasBounds.Left),
-                    Y = (int)Math.Round(glyph.AtlasBounds.Top),
-                    Width = (int)Math.Round(glyph.AtlasBounds.Right - glyph.AtlasBounds.Left),
-                    Height = (int)Math.Round(glyph.AtlasBounds.Bottom - glyph.AtlasBounds.Top),
-                    XOffset = (int)Math.Round(glyph.PlaneBounds.Left * msdfFont.Atlas.Size),
-                    // NOTE: PlaneBounds represents the glyph quad's bounds in em's relative to the baseline
-                    // NOTE: YOffset represents the offset of the quad's bounds in pixels relative to the top of the line
-                    YOffset = (int)Math.Round((glyph.PlaneBounds.Top - msdfFont.Metrics.Ascender) * msdfFont.Atlas.Size),
-                    XAdvance = (int)Math.Round(glyph.Advance * msdfFont.Atlas.Size),
+                    XAdvance = RoundToPixel(glyph.Advance * pixelsPerUnit),
                     Page = page,
                     Channel = Channel.All,
                 };
+
+                var atlasBounds = glyph.AtlasBounds;
+                var planeBounds = glyph.PlaneBounds;
+
+                // Whitespace glyphs have no bounds and draw nothing.
+                if ((atlasBounds.Right > atlasBounds.Left) && (atlasBounds.Top != atlasBounds.Bottom))
+                {
+                    double atlasTop = atlas.IsTopYOrigin ? atlasBounds.Top : atlas.Height - atlasBounds.Top;
+                    double atlasBottom = atlas.IsTopYOrigin ? atlasBounds.Bottom : atlas.Height - atlasBounds.Bottom;
+                    double planeTop = ySign * planeBounds.Top;
+
+                    // msdf-atlas-gen insets the atlas bounds by half a texel (to texel centers).
+                    // Expand them to whole texels, and move the quad by the same amount, so the
+                    // texels map onto the quad exactly as msdf-atlas-gen laid them out.
+                    int x = (int)Math.Floor(atlasBounds.Left);
+                    int y = (int)Math.Floor(atlasTop);
+
+                    character.X = x;
+                    character.Y = y;
+                    character.Width = (int)Math.Ceiling(atlasBounds.Right) - x;
+                    character.Height = (int)Math.Ceiling(atlasBottom) - y;
+                    character.XOffset = RoundToPixel((planeBounds.Left * pixelsPerUnit) - (atlasBounds.Left - x));
+                    // YOffset is measured from the top of the line; planeTop is relative to the baseline.
+                    character.YOffset = baseline + RoundToPixel((planeTop * pixelsPerUnit) - (atlasTop - y));
+                }
+
+                bitmapFont.Characters[glyph.Unicode] = character;
             }
 
             if (binaryFormat)
@@ -109,6 +140,12 @@ namespace HotChai.Fonts
             Console.WriteLine($"Wrote {destinationPath}");
 
             return ConsoleResult.Success;
+        }
+
+        private static int RoundToPixel(
+            double value)
+        {
+            return (int)Math.Round(value, MidpointRounding.AwayFromZero);
         }
     }
 }
