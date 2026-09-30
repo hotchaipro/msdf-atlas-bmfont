@@ -204,6 +204,7 @@ namespace HotChai.Fonts.Bitmap
             binaryWriter.Write(DistanceField.Version);
             binaryWriter.Write((byte)distanceField.Type);
             binaryWriter.Write(distanceField.DistanceRange);
+            binaryWriter.Write(distanceField.DistanceRangeMiddle);
         }
 
         private static byte SetBit(

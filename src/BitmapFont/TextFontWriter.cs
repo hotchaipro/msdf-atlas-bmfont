@@ -168,6 +168,7 @@ namespace HotChai.Fonts.Bitmap
             WriteInt("version", DistanceField.Version, textWriter);
             WriteEnum("type", distanceField.Type, textWriter);
             WriteFloat("distanceRange", distanceField.DistanceRange, textWriter);
+            WriteFloat("distanceRangeMiddle", distanceField.DistanceRangeMiddle, textWriter);
         }
 
         private static void WriteValue(

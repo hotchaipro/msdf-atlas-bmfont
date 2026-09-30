@@ -202,6 +202,7 @@ namespace HotChai.Fonts.Bitmap
             element.SetAttributeValue("version", (int)DistanceField.Version);
             element.SetAttributeValue("type", (int)distanceField.Type);
             element.SetAttributeValue("distanceRange", distanceField.DistanceRange);
+            element.SetAttributeValue("distanceRangeMiddle", distanceField.DistanceRangeMiddle);
         }
     }
 }
