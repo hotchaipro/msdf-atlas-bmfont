@@ -14,6 +14,4 @@
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
 
-	<Import Project="..\HotChai.Json\HotChai.Json\HotChai.Json.projitems" Label="Shared" />
-
 </Project>

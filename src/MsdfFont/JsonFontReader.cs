@@ -1,79 +1,86 @@
-﻿using System;
-using HotChai.Fonts.Msdf;
-using HotChai.Json;
+using System;
+using System.Text.Json;
 
 namespace HotChai.Fonts.Msdf
 {
     internal sealed class JsonFontReader
     {
+        private static readonly JsonReaderOptions ReaderOptions = new JsonReaderOptions()
+        {
+            AllowTrailingCommas = true,
+            CommentHandling = JsonCommentHandling.Skip,
+        };
+
         public MsdfFont Read(
             string path)
         {
-            using (var stream = File.OpenRead(path))
-            {
-                var reader = new JsonReader(stream);
-                return this.Read(reader);
-            }
+            var json = File.ReadAllBytes(path);
+            var reader = new Utf8JsonReader(json, ReaderOptions);
+
+            reader.Read();
+            return this.Read(ref reader);
         }
 
         private MsdfFont Read(
-            JsonReader reader)
+            ref Utf8JsonReader reader)
         {
             Atlas atlas = default;
             var metrics = new List<Metrics>();
             var glyphs = new List<Glyph>();
 
-            if (reader.ReadStartObject())
+            if (StartObject(ref reader))
             {
-                while (reader.MoveToNextMember())
+                while (MoveToNextMember(ref reader, out var memberKey))
                 {
-                    switch (reader.MemberKey)
+                    switch (memberKey)
                     {
                         case "atlas":
-                            atlas = this.ReadAtlas(reader);
+                            atlas = this.ReadAtlas(ref reader);
                             break;
 
                         case "metrics":
-                            metrics.Add(this.ReadMetrics(reader));
+                            metrics.Add(this.ReadMetrics(ref reader));
                             break;
 
                         case "glyphs":
-                            glyphs.AddRange(this.ReadGlyphs(reader));
+                            this.ReadGlyphs(ref reader, glyphs);
                             break;
 
                         case "variants":
-                            if (reader.ReadStartArray())
+                            if (StartArray(ref reader))
                             {
-                                while (reader.MoveToNextArrayValue())
+                                while (MoveToNextArrayValue(ref reader))
                                 {
-                                    if (reader.ReadStartObject())
+                                    if (StartObject(ref reader))
                                     {
-                                        while (reader.MoveToNextMember())
+                                        while (MoveToNextMember(ref reader, out var variantMemberKey))
                                         {
-                                            switch (reader.MemberKey)
+                                            switch (variantMemberKey)
                                             {
                                                 case "metrics":
-                                                    metrics.Add(this.ReadMetrics(reader));
+                                                    metrics.Add(this.ReadMetrics(ref reader));
                                                     break;
 
                                                 case "glyphs":
-                                                    glyphs.AddRange(this.ReadGlyphs(reader));
+                                                    this.ReadGlyphs(ref reader, glyphs);
+                                                    break;
+
+                                                default:
+                                                    reader.Skip();
                                                     break;
                                             }
                                         }
-
-                                        reader.ReadEndObject();
                                     }
                                 }
-
-                                reader.ReadEndArray();
                             }
 
                             break;
+
+                        default:
+                            reader.Skip();
+                            break;
                     }
                 }
-
-                reader.ReadEndObject();
             }
 
             return new MsdfFont(
@@ -83,7 +90,7 @@ namespace HotChai.Fonts.Msdf
         }
 
         private Atlas ReadAtlas(
-            JsonReader reader)
+            ref Utf8JsonReader reader)
         {
             string atlasType = null;
             int distanceRange = 0;
@@ -93,47 +100,49 @@ namespace HotChai.Fonts.Msdf
             int height = 0;
             bool isTopYOrigin = false;
 
-            if (reader.ReadStartObject())
+            if (StartObject(ref reader))
             {
-                while (reader.MoveToNextMember())
+                while (MoveToNextMember(ref reader, out var memberKey))
                 {
-                    switch (reader.MemberKey)
+                    switch (memberKey)
                     {
                         case "type":
-                            atlasType = reader.ReadValueAsString(64);
+                            atlasType = reader.GetString();
                             break;
 
                         case "distanceRange":
-                            distanceRange = reader.ReadValueAsInt32();
+                            distanceRange = GetInt32(ref reader);
                             break;
 
                         case "distanceRangeMiddle":
-                            distanceRangeMiddle = reader.ReadValueAsInt32();
+                            distanceRangeMiddle = GetInt32(ref reader);
                             break;
 
                         case "size":
-                            size = reader.ReadValueAsDouble();
+                            size = reader.GetDouble();
                             break;
 
                         case "width":
-                            width = reader.ReadValueAsInt32();
+                            width = GetInt32(ref reader);
                             break;
 
                         case "height":
-                            height = reader.ReadValueAsInt32();
+                            height = GetInt32(ref reader);
                             break;
 
                         case "yOrigin":
-                            var yOrigin = reader.ReadValueAsString(64);
-                            if (0 == String.Compare(yOrigin, "top", StringComparison.OrdinalIgnoreCase))
+                            var yOrigin = reader.GetString();
+                            if (string.Equals(yOrigin, "top", StringComparison.OrdinalIgnoreCase))
                             {
                                 isTopYOrigin = true;
                             }
                             break;
+
+                        default:
+                            reader.Skip();
+                            break;
                     }
                 }
-
-                reader.ReadEndObject();
             }
 
             return new Atlas(
@@ -147,7 +156,7 @@ namespace HotChai.Fonts.Msdf
         }
 
         private Metrics ReadMetrics(
-            JsonReader reader)
+            ref Utf8JsonReader reader)
         {
             double emSize = 0;
             double lineHeight = 0;
@@ -156,39 +165,41 @@ namespace HotChai.Fonts.Msdf
             double underlineY = 0;
             double underlineThickness = 0;
 
-            if (reader.ReadStartObject())
+            if (StartObject(ref reader))
             {
-                while (reader.MoveToNextMember())
+                while (MoveToNextMember(ref reader, out var memberKey))
                 {
-                    switch (reader.MemberKey)
+                    switch (memberKey)
                     {
                         case "emSize":
-                            emSize = reader.ReadValueAsDouble();
+                            emSize = reader.GetDouble();
                             break;
 
                         case "lineHeight":
-                            lineHeight = reader.ReadValueAsDouble();
+                            lineHeight = reader.GetDouble();
                             break;
 
                         case "ascender":
-                            ascender = reader.ReadValueAsDouble();
+                            ascender = reader.GetDouble();
                             break;
 
                         case "descender":
-                            descender = reader.ReadValueAsDouble();
+                            descender = reader.GetDouble();
                             break;
 
                         case "underlineY":
-                            underlineY = reader.ReadValueAsDouble();
+                            underlineY = reader.GetDouble();
                             break;
 
                         case "underlineThickness":
-                            underlineThickness = reader.ReadValueAsDouble();
+                            underlineThickness = reader.GetDouble();
+                            break;
+
+                        default:
+                            reader.Skip();
                             break;
                     }
                 }
-
-                reader.ReadEndObject();
             }
 
             return new Metrics(
@@ -200,53 +211,54 @@ namespace HotChai.Fonts.Msdf
                 underlineThickness: underlineThickness);
         }
 
-        private IEnumerable<Glyph> ReadGlyphs(
-            JsonReader reader)
+        private void ReadGlyphs(
+            ref Utf8JsonReader reader,
+            List<Glyph> glyphs)
         {
-            if (reader.ReadStartArray())
+            if (StartArray(ref reader))
             {
-                while (reader.MoveToNextArrayValue())
+                while (MoveToNextArrayValue(ref reader))
                 {
-                    yield return this.ReadGlyph(reader);
+                    glyphs.Add(this.ReadGlyph(ref reader));
                 }
-
-                reader.ReadEndArray();
             }
         }
 
         private Glyph ReadGlyph(
-            JsonReader reader)
+            ref Utf8JsonReader reader)
         {
             int unicode = 0;
             double advance = 0;
             Bounds planeBounds = default;
             Bounds atlasBounds = default;
 
-            if (reader.ReadStartObject())
+            if (StartObject(ref reader))
             {
-                while (reader.MoveToNextMember())
+                while (MoveToNextMember(ref reader, out var memberKey))
                 {
-                    switch (reader.MemberKey)
+                    switch (memberKey)
                     {
                         case "unicode":
-                            unicode = reader.ReadValueAsInt32();
+                            unicode = GetInt32(ref reader);
                             break;
 
                         case "advance":
-                            advance = reader.ReadValueAsDouble();
+                            advance = reader.GetDouble();
                             break;
 
                         case "planeBounds":
-                            planeBounds = this.ReadBounds(reader);
+                            planeBounds = this.ReadBounds(ref reader);
                             break;
 
                         case "atlasBounds":
-                            atlasBounds = this.ReadBounds(reader);
+                            atlasBounds = this.ReadBounds(ref reader);
+                            break;
+
+                        default:
+                            reader.Skip();
                             break;
                     }
                 }
-
-                reader.ReadEndObject();
             }
 
             return new Glyph(
@@ -257,38 +269,40 @@ namespace HotChai.Fonts.Msdf
         }
 
         private Bounds ReadBounds(
-            JsonReader reader)
+            ref Utf8JsonReader reader)
         {
             double left = 0;
             double top = 0;
             double right = 0;
             double bottom = 0;
 
-            if (reader.ReadStartObject())
+            if (StartObject(ref reader))
             {
-                while (reader.MoveToNextMember())
+                while (MoveToNextMember(ref reader, out var memberKey))
                 {
-                    switch (reader.MemberKey)
+                    switch (memberKey)
                     {
                         case "left":
-                            left = reader.ReadValueAsDouble();
+                            left = reader.GetDouble();
                             break;
 
                         case "top":
-                            top = reader.ReadValueAsDouble();
+                            top = reader.GetDouble();
                             break;
 
                         case "right":
-                            right = reader.ReadValueAsDouble();
+                            right = reader.GetDouble();
                             break;
 
                         case "bottom":
-                            bottom = reader.ReadValueAsDouble();
+                            bottom = reader.GetDouble();
+                            break;
+
+                        default:
+                            reader.Skip();
                             break;
                     }
                 }
-
-                reader.ReadEndObject();
             }
 
             return new Bounds(
@@ -296,6 +310,89 @@ namespace HotChai.Fonts.Msdf
                 top: top,
                 right: right,
                 bottom: bottom);
+        }
+
+        // The helpers below expect the reader to be positioned on the current value's first token
+        // and leave it on the value's last token, as Utf8JsonReader.Skip does.
+
+        /// <summary>
+        /// Returns <c>true</c> if the current value is an object, or <c>false</c> if it is null.
+        /// </summary>
+        private static bool StartObject(
+            ref Utf8JsonReader reader)
+        {
+            return reader.TokenType switch
+            {
+                JsonTokenType.StartObject => true,
+                JsonTokenType.Null => false,
+                _ => throw new JsonException($"Expected an object but found {reader.TokenType}."),
+            };
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the current value is an array, or <c>false</c> if it is null.
+        /// </summary>
+        private static bool StartArray(
+            ref Utf8JsonReader reader)
+        {
+            return reader.TokenType switch
+            {
+                JsonTokenType.StartArray => true,
+                JsonTokenType.Null => false,
+                _ => throw new JsonException($"Expected an array but found {reader.TokenType}."),
+            };
+        }
+
+        /// <summary>
+        /// Advances to the value of the next member of the current object, or returns <c>false</c>
+        /// at the end of the object.
+        /// </summary>
+        private static bool MoveToNextMember(
+            ref Utf8JsonReader reader,
+            out string memberKey)
+        {
+            ReadToken(ref reader);
+
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                memberKey = null;
+                return false;
+            }
+
+            memberKey = reader.GetString();
+            ReadToken(ref reader);
+            return true;
+        }
+
+        /// <summary>
+        /// Advances to the next value of the current array, or returns <c>false</c> at the end of
+        /// the array.
+        /// </summary>
+        private static bool MoveToNextArrayValue(
+            ref Utf8JsonReader reader)
+        {
+            ReadToken(ref reader);
+            return reader.TokenType != JsonTokenType.EndArray;
+        }
+
+        private static void ReadToken(
+            ref Utf8JsonReader reader)
+        {
+            if (!reader.Read())
+            {
+                throw new JsonException("Unexpected end of JSON.");
+            }
+        }
+
+        /// <summary>
+        /// Reads an integer, rounding a fractional number rather than rejecting it.
+        /// </summary>
+        private static int GetInt32(
+            ref Utf8JsonReader reader)
+        {
+            return reader.TryGetInt32(out var value)
+                ? value
+                : (int)Math.Round(reader.GetDouble());
         }
     }
 }
