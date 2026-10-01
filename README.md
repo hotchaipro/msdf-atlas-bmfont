@@ -39,12 +39,13 @@ The platforms published by default are listed in `PublishRuntimeIdentifiers` in 
 
 ### 1. Generate the atlas with msdf-atlas-gen
 
-Generate a PNG atlas and a JSON layout.
+Generate a PNG atlas and a JSON layout with at least half a texel of padding around each glyph (`-outerpxpadding 0.5`).
 
 ```powershell
-msdf-atlas-gen.exe -font MyFont.ttf -type msdf -size 32 -pxrange 4 -format png
-    -imageout MyFont.png -json MyFont.json
+msdf-atlas-gen.exe -font MyFont.ttf -type msdf -size 32 -pxrange 4 -outerpxpadding 0.5 -format png -imageout MyFont.png -json MyFont.json
 ```
+
+The padding is required. BMFont stores each glyph's position in the atlas in whole texels, so each glyph is drawn with its edge texels in full, and bilinear filtering at the edge of the glyph's quad blends in the texels just outside it. Without padding, those texels belong to the neighboring glyph, and blending two distance fields draws a faint line along the edge of the quad. If you see lines or specks around glyphs, increase the padding.
 
 Any atlas type (`sdf`, `psdf`, `msdf` or `mtsdf`) can be converted, with either Y origin (`-yorigin top` or `bottom`) and either a symmetric (`-pxrange`) or an asymmetric (`-apxrange`) distance range. An asymmetric range spends the atlas's precision and padding on the side of the outline you need: for example, `-apxrange -6 2` reaches further outside the glyphs for outlines and glows, and `-apxrange -1 3` packs plain text into a smaller atlas. See the msdf-atlas-gen documentation for the full list of options.
 
@@ -82,12 +83,12 @@ In this table, `size` is `atlas.size` (pixels per em), and y values are measured
 | `common base` | −`metrics.ascender` × size |
 | `common scaleW`, `scaleH` | `atlas.width`, `atlas.height` |
 | `char id` | `glyph.unicode` |
-| `char x`, `y`, `width`, `height` | `glyph.atlasBounds`, shrunk inward to whole texels |
-| `char xoffset` | `glyph.planeBounds.left` × size, plus the texels removed on the left |
-| `char yoffset` | `common base` + `glyph.planeBounds.top` × size, plus the texels removed on the top |
+| `char x`, `y`, `width`, `height` | `glyph.atlasBounds`, grown outward to whole texels |
+| `char xoffset` | `glyph.planeBounds.left` × size, minus the texels added on the left |
+| `char yoffset` | `common base` + `glyph.planeBounds.top` × size, minus the texels added on the top |
 | `char xadvance` | `glyph.advance` × size |
 
-msdf-atlas-gen places each glyph's atlas bounds at the centers of its edge texels, so that bilinear filtering never blends in a neighboring glyph. The converter shrinks them to whole texels, which only trims padding outside the glyph's outline, and moves the glyph's offsets by the same amount, so the texels are drawn exactly where msdf-atlas-gen positioned them. Glyph offsets are measured from the rounded `base`, so every glyph sits exactly on the baseline.
+msdf-atlas-gen places each glyph's atlas bounds at the centers of its edge texels. The converter grows them to whole texels, so every texel of the glyph's distance field is drawn and emboldened edges can reach the full distance range, and moves the glyph's offsets by the same amount, so the texels are drawn exactly where msdf-atlas-gen positioned them. This is why the atlas needs padding between glyphs (see [Generate the atlas](#1-generate-the-atlas-with-msdf-atlas-gen)). Glyph offsets are measured from the rounded `base`, so every glyph sits exactly on the baseline.
 
 Pixel values are rounded to the nearest integer (halves away from zero), because BMFont stores whole pixels. With msdf-atlas-gen's default `-pxalign`, glyphs are placed exactly vertically and within half a pixel horizontally. Rounding each `xadvance` introduces up to half a pixel of spacing error per character, which grows when text is drawn larger than the atlas size.
 

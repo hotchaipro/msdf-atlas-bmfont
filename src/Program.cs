@@ -109,19 +109,19 @@ namespace HotChai.Fonts
                     double atlasBottom = atlas.IsTopYOrigin ? atlasBounds.Bottom : atlas.Height - atlasBounds.Bottom;
                     double planeTop = ySign * planeBounds.Top;
 
-                    // msdf-atlas-gen insets the atlas bounds by half a texel (to texel centers), so
-                    // that bilinear sampling never reaches a neighboring glyph. BMFont rectangles
-                    // are whole texels, so shrink the bounds to whole texels (so that bilinear
-                    // sampling at the quad edges only blends this glyph's own padding texels) and
-                    // move the quad by the same amount so the texels land where msdf-atlas-gen
-                    // laid them out.
-                    int x = (int)Math.Ceiling(atlasBounds.Left);
-                    int y = (int)Math.Ceiling(atlasTop);
+                    // msdf-atlas-gen insets the atlas bounds by half a texel (to texel centers).
+                    // BMFont rectangles are whole texels, so grow the bounds to include the
+                    // glyph's edge texels in full, which keeps all of its distance field, and move
+                    // the quad by the same amount so the texels land where msdf-atlas-gen laid
+                    // them out. Bilinear sampling at the quad edges then blends in the neighboring
+                    // texels, so the atlas needs empty padding between glyphs (-outerpxpadding).
+                    int x = (int)Math.Floor(atlasBounds.Left);
+                    int y = (int)Math.Floor(atlasTop);
 
                     character.X = x;
                     character.Y = y;
-                    character.Width = Math.Max((int)Math.Floor(atlasBounds.Right) - x, 0);
-                    character.Height = Math.Max((int)Math.Floor(atlasBottom) - y, 0);
+                    character.Width = (int)Math.Ceiling(atlasBounds.Right) - x;
+                    character.Height = (int)Math.Ceiling(atlasBottom) - y;
                     character.XOffset = RoundToPixel((planeBounds.Left * pixelsPerUnit) + (x - atlasBounds.Left));
                     // YOffset is measured from the top of the line; planeTop is relative to the baseline.
                     character.YOffset = baseline + RoundToPixel((planeTop * pixelsPerUnit) + (y - atlasTop));
